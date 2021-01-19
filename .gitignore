@@ -1,0 +1,8 @@
+*.ipynb_checkpoints*
+*.out
+*.DS_Store
+*.pyc
+*.vscode
+*0-old*
+*.exe
+*.run
