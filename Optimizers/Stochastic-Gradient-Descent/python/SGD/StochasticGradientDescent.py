@@ -1,3 +1,6 @@
+from numpy   import random as np_random
+
+
 # Generic classes for the target and loss functions
 class modelBase:
     '''
@@ -32,8 +35,8 @@ class modelBase:
     def derivative_w(self,i):
         pass
 
-
-
+ 
+ 
 class lossFunc:
     '''
     This is how the loss function should look like.
@@ -59,10 +62,7 @@ class lossFunc:
         self.dim=len(self.model.w)#dimension of w
         self.N=model.dimensions[1]#dimension of model.signal
         self.dQdw=0 #this will hold dQdw
-        
-        #we need this to hold the average gadient over all data points
-        self.grad=[0 for _ in range(self.dim)]
-
+        self.t=[]
         
         
     def __call__(self,target):
@@ -75,28 +75,27 @@ class lossFunc:
 
         return sum_Q
     
+    def randomDataPoint(self):
+        index=np_random.randint(self.data_size)
+        self.t=self.data_out[index]    
+        self.model.setInput(self.data_in[index])
+        self.model()
+
     
-
-    def averageGrad(self):
-        #get the average gradient over all data
-        for index in range(self.data_size):
-            t=self.data_out[index]
-            self.model.setInput(self.data_in[index])
-            self.model()
-
-            for i in range(self.dim):
-                self.model.derivative_w(i)
-                self.dQdw=0
-
-                for r in range(self.N):
-                    tmp_dQds=self.dQds_i(self.model.signal[r], t[r])/(float(self.N))
-                    self.dQdw += tmp_dQds*self.model.dsdw[r]
-
-                self.grad[i]+=self.dQdw/self.data_size
-
-
-class GradientDescent:
     
+    def grad(self,i):
+        self.model.derivative_w(i)
+        self.dQdw=0
+        
+        for r in range(self.N):
+            tmp_dQds=self.dQds_i(self.model.signal[r], self.t[r])/(float(self.N))
+            self.dQdw += tmp_dQds*self.model.dsdw[r]
+#--------------------------------------------------------------------------------#
+
+
+
+#Base class for Stochastic Gradient Descent
+class StochasticGradientDescent:    
     def __init__(self,loss):
         '''
         loss: the loss function
@@ -108,7 +107,7 @@ class GradientDescent:
         self.steps=[]
         self.steps.append(self.Q.model.w[:])
         self.dim=self.Q.model.dim
-    
+
     def update(self):
         pass
     
